@@ -1,0 +1,161 @@
+{% extends "participant_layout.html" %}
+{% block body %}
+<div>
+  <section class="pb_section" data-section="why-us" id="section-why-us">
+    <div class="container">
+      <div class="row justify-content-md-center text-center mb-5">
+        <div class="col-lg-7">
+          <h2 class="mt-0 heading-border-top font-weight-normal">{{event_venue[1]}}</h2>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-7">
+          <div class="images right">
+            {% if event_venue[0]== "NA" %}
+            <img class="img1 img-fluid" src="{{event_venue[1]}}" alt="{{event_venue[1]}}">
+            {% else %}
+            <img class="img1 img-fluid" src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="{{event_venue[1]}}">
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-lg-5 pl-md-5 pl-sm-0">
+          <div id="exampleAccordion" class="pb_accordion" data-children=".item">
+            <div class="item"></div>
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion1" aria-expanded="true"
+                aria-controls="exampleAccordion1" class="pb_font-18"><b>Event Name</b></a>
+              <div id="exampleAccordion1" class="collapse show" role="tabpanel">
+                <p>{{event_venue[1]}}</p>
+              </div>
+            </div>
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion2" aria-expanded="true"
+                aria-controls="exampleAccordion2" class="pb_font-18"><b>Description</b></a>
+              <div id="exampleAccordion2" class="collapse show" role="tabpanel">
+                <p>{{event_venue[2]}}</p>
+              </div>
+            </div>
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion3" aria-expanded="false"
+                aria-controls="exampleAccordion3" class="pb_font-18"><b>Conducted By</b></a>
+              <div id="exampleAccordion3" class="collapse show" role="tabpanel">
+                <p>{{event_venue[3]}}</p>
+              </div>
+            </div>
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion4" aria-expanded="false"
+                aria-controls="exampleAccordion4" class="pb_font-18"><b>Location Details</b></a>
+              <div id="exampleAccordion4" class="collapse show" role="tabpanel">
+                <p><b>Location:</b> {{event_venue[4]}}</p>
+                <p><b>Venue Name:</b> {{event_venue[5]}}</p>
+              </div>
+            </div>
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion5" aria-expanded="false"
+                aria-controls="exampleAccordion5" class="pb_font-18"><b>Event Date</b></a>
+              <div id="exampleAccordion5" class="collapse show" role="tabpanel">
+                <p>{{event_venue[6]}}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pb_section bg-light">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg">
+          <div class="media pb_media_v1 mb-5">
+            <div class="media-body">
+              <h3 class="mt-0 pb_font-17">Tickets</h3>
+              <form id="ticketForm" action="/book_ticket" method="POST">
+                <!-- Hidden inputs for event_id and puser_id -->
+                <input type="hidden" name="event_id" value="{{event_id}}">
+                
+                {% for ticket in seat_ticket %}
+                <div class="ticket-item" data-ticket-id="{{ticket[0]}}" data-max-quantity="{{ticket[3]}}">
+                  <p class="pb_font-14"><b>{{ticket[1]}}</b></p>
+                  <p class="pb_font-14">
+                    $ {{ticket[2]}} | 
+                    {% if ticket[3] == 0 %}
+                    <span class="text-danger"><b>SOLD OUT</b></span>
+                    {% else %}
+                    Tickets Left {{ticket[3]}}
+                    {% endif %}
+                  </p>
+                  <div class="quantity-control">
+                    <button type="button" class="btn btn-secondary btn-sm decrement" disabled>-</button>
+                    <input type="number" class="ticket-quantity" name="ticket_{{ticket[0]}}" value="0" readonly>
+                    <button type="button" class="btn btn-secondary btn-sm increment">+</button>
+                  </div>
+                </div>
+                <p></p>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary mt-3" disabled id="submitButton">Submit</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="w-100"></div>
+      </div>
+    </div>
+  </section>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const ticketItems = document.querySelectorAll(".ticket-item");
+    const submitButton = document.getElementById("submitButton");
+
+    ticketItems.forEach(item => {
+      const decrementBtn = item.querySelector(".decrement");
+      const incrementBtn = item.querySelector(".increment");
+      const quantityInput = item.querySelector(".ticket-quantity");
+      const maxQuantity = parseInt(item.dataset.maxQuantity);
+
+      // Get the minimum between 10 and maxQuantity
+      const maxAllowed = Math.min(10, maxQuantity);
+
+      // Update button states
+      const updateButtons = () => {
+        const quantity = parseInt(quantityInput.value);
+        decrementBtn.disabled = quantity <= 0;
+        incrementBtn.disabled = quantity >= maxAllowed;
+
+        // Disable all other tickets if any quantity is > 0
+        const anySelected = Array.from(ticketItems).some(ticket => {
+          const qty = parseInt(ticket.querySelector(".ticket-quantity").value);
+          return qty > 0;
+        });
+
+        ticketItems.forEach(ticket => {
+          if (ticket !== item) {
+            ticket.querySelector(".increment").disabled = anySelected;
+            ticket.querySelector(".decrement").disabled = anySelected;
+          }
+        });
+
+        submitButton.disabled = !anySelected;
+      };
+
+      // Increment button handler
+      incrementBtn.addEventListener("click", () => {
+        const currentValue = parseInt(quantityInput.value);
+        if (currentValue < maxQuantity) {
+          quantityInput.value = currentValue + 1;
+          updateButtons();
+        }
+      });
+
+      // Decrement button handler
+      decrementBtn.addEventListener("click", () => {
+        const currentValue = parseInt(quantityInput.value);
+        if (currentValue > 0) {
+          quantityInput.value = currentValue - 1;
+          updateButtons();
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

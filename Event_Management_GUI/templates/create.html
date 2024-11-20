@@ -1,0 +1,31 @@
+{% extends "admin_layout.html" %}
+{% block body %}
+
+<div class="row">
+    <div class="col-md-4 offset-md-4" style="margin: 50px">
+        <div class="card card-body">
+            <form action="/create/{{table_name}}" method="POST">
+                {% if skip_id==True %}
+                    {% for i in range(1, columns|length) %}
+                    <div class="form-group">
+                        <label>{{columns[i]}}</label>
+                        <input type="text" name="{{columns[i]}}" value="" class="form-control">
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    {% for i in range(columns|length) %}
+                    <div class="form-group">
+                        <label>{{columns[i]}}</label>
+                        <input type="text" name="{{columns[i]}}" value="" class="form-control">
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                <button type="submit" class="btn btn-primary btn-block">
+                    Create
+                </button>
+        </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

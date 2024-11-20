@@ -1,0 +1,24 @@
+{% extends "admin_layout.html" %}
+{% block body %}
+<div class="container pt-4">
+    <div class="row">
+        <h3>Table selection</h3>
+    </div>
+
+    <div class="row">
+        <div class="col-md-9">
+            <form method="POST" action="/read">
+                <label for="table" class="csl">Table Name</label>
+                <input type="text" id="table" name="table" class="csi" list="tablesearch">
+                <datalist id="tablesearch">
+                    {% for table in tables[0] %}
+                    <option>{{table}}</option>
+                    {% endfor %}
+                </datalist>
+                <button type="submit" class="btn btn-primary btn-default">Go</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="../static/css/em_logo.png" type="../static/css/em_logo.png">
+  <link href="../static/css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+  <title>Event Management | Index</title>
+  <style>
+    .logout-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background-color: #f44336; /* Red background */
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .logout-button:hover {
+      background-color: #d32f2f; /* Darker red on hover */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left">
+      <!-- Logout Button -->
+      <a href="/logout" class="logout-button">LOGOUT</a>
+
+      <div class="header">
+        <img src="../static/css/em_logo.png" alt="Event Management Logo">
+        <h4 class="animation a2">Welcome<span> {{user_fullname}}</span></h4>
+        <h4 class="animation a2">Select from the below<span> options to go to respective page</span></h4>
+      </div>
+      
+      {% if user_type_flag[0] == 1 %}
+      <a href="/host_dashboard" class="form-submit-button animation a6">HOST</a>
+      {% endif %}
+
+      {% if user_type_flag[1] == 1 %}
+      <a href="/participant_dashboard" class="form-submit-button animation a6">PARTICIPANT</a>
+      {% endif %}
+
+      {% if user_type_flag[2] == 1 %}
+      <a href="/admin_resp_check" class="form-submit-button animation a6">ADMIN</a>
+      {% endif %}
+      
+      <footer>
+        <p>
+          Copyright © <a href=""></a>Event Management</a>. All Rights Reserved.
+        </p>
+      </footer>
+    </div>
+    <div class="right"></div>
+  </div>
+</body>
+</html>

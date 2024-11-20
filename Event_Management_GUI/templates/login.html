@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="../static/css/ht_logo.png" type="../static/css/ht_logo.png">
+  <link href="../static/css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+  <title>Event Management</title>
+  <style>
+    .popup-message {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #f8d7da; /* Light red background */
+      color: #721c24; /* Dark red text */
+      padding: 15px 20px;
+      border: 1px solid #f5c6cb; /* Border matching background */
+      border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-width: 250px;
+    }
+
+    .popup-message .close {
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 16px;
+      color: #721c24;
+      margin-left: 10px;
+    }
+
+    .popup-message .close:hover {
+      color: #d9534f; /* Slightly darker red on hover */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left">
+      <div class="header">
+        <img src="../static/css/em_logo.png" alt="Event Management Logo">
+        <h4 class="animation a2">One place to all events. <span>Check the e-mail ID and password before submitting.</span></h4>
+      </div>
+      <form action="/login_route" class="form" method="POST">
+        <input type="email" class="form-field animation a3" name="email_username" placeholder="E-mail">
+        <input type="password" class="form-field animation a4" name="password" placeholder="Password">
+        <button class="form-submit-button animation a6" type="submit">SUBMIT</button>
+      </form>
+
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+      {% for message in messages %}
+      <div class="popup-message">
+        {{ message }}
+        <button type="button" class="close" onclick="this.parentElement.style.display='none';">&times;</button>
+      </div>
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+
+      <footer>
+        <p>
+          Copyright © <a href=""></a>Event Management</a>. All Rights Reserved.
+        </p>
+      </footer>
+    </div>
+    <div class="right"></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{% extends "participant_layout.html" %}
+{% block body %}
+<div class="container-fluid">
+  <div class="row" style="margin-left: 20px; margin-top: 20px;">
+      <h3>Booking Successful</h3>
+  </div>
+    <form id="redirectForm" method="POST" action="/event_registrations">
+    </form>
+    <script>
+        document.getElementById('redirectForm').submit();
+    </script>
+</div>
+
+{% endblock %}
