@@ -1,10 +1,10 @@
-{% extends "admin_layout.html" %}
+{% extends "host_layout.html" %}
 {% block body %}
 <div class="container-fluid">
   <div class="row" style="margin-left: 20px; margin-top: 20px;">
       <h3>{{table_name}}</h3>
     <div class="col-md-9">
-      <a href="/insert/{{table_name}}" class="btn btn-primary btn-sm">Insert</a>
+      <a href="/insert_host/{{table_name}}" class="btn btn-primary btn-sm">Insert</a>
     </div>
   </div>
 
@@ -26,14 +26,12 @@
             <td>{{cell}}</td>
             {% endfor %}
             <td>
-              {% if table_name=="BUDGET_SHEET" %}
-                <a href="/edit/{{table_name}}/{{columns[0]}}_{{row[0]}}_{{columns[1]}}_{{row[1]}}" class="btn btn-secondary btn-sm">Edit</a>
-                <a href="/delete/{{table_name}}/{{columns[0]}}_{{row[0]}}_{{columns[1]}}_{{row[1]}}" class="btn btn-danger btn-delete btn-sm">Delete</a>
-              {% else %}
-                <a href="/edit/{{table_name}}/{{columns[0]}}_{{row[0]}}" class="btn btn-secondary btn-sm">Edit</a>
-                <a href="/delete/{{table_name}}/{{columns[0]}}_{{row[0]}}" class="btn btn-danger btn-delete btn-sm">Delete</a>
+              <a href="/edit_host/{{table_name}}/{{columns[0]}}/{{row[0]}}" class="btn btn-secondary btn-sm">Edit</a>
+              {% if table_name=="EVENT" %}
+              <a href="/show_reg/{{row[0]}}" class="btn btn-secondary btn-sm">Registrations</a>
+              <a href="/show_feedback/{{row[0]}}" class="btn btn-secondary btn-sm">Feedback</a>
               {% endif %}
-              
+              <a href="/delete_host/{{table_name}}/{{columns[0]}}/{{row[0]}}" class="btn btn-danger btn-delete btn-sm">Delete</a>
             </td>
           </tr>
           {% endfor %}

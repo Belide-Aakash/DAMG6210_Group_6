@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Event Management | Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="{{ url_for('static', filename='assets/js/jquery.dataTables.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/js/dataTables.bootstrap.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/js/jquery.easing.1.3.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/js/bootstrap.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/js/main.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap/bootstrap.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}">
+  <style>
+    nav > img {
+      width: 10vh;
+      height: 10vh;
+    }
+
+    .imgc {
+      height: 100px;
+      width: 100;
+    }
+
+    .csl {
+      font-weight: 700;
+    }
+
+    .csi {
+      border-radius: 5px;
+      margin: 10px;
+      width: 150px;
+    }
+
+    .popup-message {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 15px 20px;
+      border: 1px solid #f5c6cb;
+      border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-width: 250px;
+    }
+
+    .popup-message .close {
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 16px;
+      color: #721c24;
+      margin-left: 10px;
+    }
+
+    .popup-message .close:hover {
+      color: #d9534f;
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 12px;
+      right: 20px;
+      background-color: #ed8323;
+      border: none;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .logout-btn:hover {
+      background-color: #d9534f;
+    }
+
+    .nav-right {
+      position: absolute;
+      right: 120px;
+      top: 12px;
+      display: flex;
+      gap: 15px;
+    }
+
+    .nav-right a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+
+    .nav-right a:hover {
+      color: #ed8323;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVIGATION  -->
+  <nav class="navbar navbar-dark" style="background-color: #4d4d4d; position: relative;">
+    <a class="navbar-brand" href="/host_dashboard" style="color: #ed8323; font-weight: 700;">Event Management - Dashboard</a>
+    <div class="nav-right">
+      <a href="/org">Organization</a>
+      <a href="/host_dashboard">Events</a>
+      <a href="/org_budget_sheets">Budget Sheets</a>
+      <a href="/org_req">Requests</a>
+    </div>
+    <a href="/logout" class="logout-btn">Logout</a>
+  </nav>
+
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  {% for message in messages %}
+  <div class="popup-message">
+    {{ message }}
+    <button type="button" class="close" onclick="this.parentElement.style.display='none';">&times;</button>
+  </div>
+  {% endfor %}
+  {% endif %}
+  {% endwith %}
+
+  {% block body %}
+  {% endblock %}
+
+  <footer class="pb_footer bg-light" role="contentinfo">
+    <div class="container">
+      <div class="row">
+        <div class="col text-center">
+          <!-- <p class="pb_font-14">Event Management Portal -->
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const btnDelete = document.querySelectorAll('.btn-delete');
+    if (btnDelete) {
+      const btnArray = Array.from(btnDelete);
+      btnArray.forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          if (!confirm('Are you sure you want to delete it?')) {
+            e.preventDefault();
+          }
+        });
+      });
+    }
+
+    $(document).ready(function () {
+      $('#example').DataTable({
+        "aLengthMenu": [
+          [3, 5, 10, 25, -1],
+          [3, 5, 10, 25, "All"]
+        ],
+        "iDisplayLength": 3
+      });
+    });
+  </script>
+</body>
+
+</html>

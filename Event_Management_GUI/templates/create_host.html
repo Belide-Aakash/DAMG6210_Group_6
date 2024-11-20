@@ -1,0 +1,28 @@
+{% extends "host_layout.html" %}
+{% block body %}
+
+<div class="row">
+    <div class="col-md-4 offset-md-4" style="margin: 50px">
+        <div class="card card-body">
+            <form action="/create_host/{{table_name}}" method="POST">
+                {% for i in range(1, columns|length) %}
+                    <div class="form-group">
+                        <label>{{columns[i]}}</label>
+                        {% if columns[i]=="OrgID" %}
+                        <input type="text" name="{{columns[i]}}" value="{{org_id}}" class="form-control" disabled>
+                        {% elif columns[i]=="HostID" %}
+                        <input type="text" name="{{columns[i]}}" value="{{user_id}}" class="form-control" disabled>
+                        {% else %}
+                        <input type="text" name="{{columns[i]}}" value="" class="form-control">
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary btn-block">
+                    Create
+                </button>
+        </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
