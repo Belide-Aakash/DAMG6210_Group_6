@@ -5,7 +5,7 @@
     <div class="container">
       <div class="row justify-content-md-center text-center mb-5">
         <div class="col-lg-7">
-          <h2 class="mt-0 heading-border-top font-weight-normal">{{org[2]}}</h2>
+          <h2 class="mt-0 heading-border-top font-weight-normal">{{org[1]}}</h2>
         </div>
       </div>
       <div class="row">
@@ -34,29 +34,37 @@
                 <p>{{org[3]}}</p>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section class="pb_section bg-light">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg">
-          <div class="media pb_media_v1 mb-5">
-            <div class="media-body">
-              <h3 class="mt-0 pb_font-17">Organization Stats</h3>
-                <!-- Hidden inputs for event_id and puser_id -->
-                <!-- {% for o in org %}
-                <div class="org-item" data-org-id="{{org[0]}}" data-max-quantity="{{org[3]}}">
-                  <p class="pb_font-14"><b>{{org[1]}}</b></p>
-                </div>
-                <p></p>
-                {% endfor %} -->
+            <h4 class="mt-0 pb_font-17">Organization Stats</h4>
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion3" aria-expanded="true"
+                aria-controls="exampleAccordion3" class="pb_font-18"><b>Number of Hosts</b></a>
+              <div id="exampleAccordion3" class="collapse show" role="tabpanel">
+                <p>{{org[4]}}</p>
+              </div>
+            </div>
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion4" aria-expanded="true"
+                aria-controls="exampleAccordion4" class="pb_font-18"><b>Number of Events</b></a>
+              <div id="exampleAccordion4" class="collapse show" role="tabpanel">
+                <p>{{org[5]}}</p>
+              </div>
+            </div>
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion5" aria-expanded="true"
+                aria-controls="exampleAccordion5" class="pb_font-18"><b>Total Registrations</b></a>
+              <div id="exampleAccordion5" class="collapse show" role="tabpanel">
+                <p>{{org[6]}}</p>
+              </div>
+            </div>
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion6" aria-expanded="true"
+                aria-controls="exampleAccordion6" class="pb_font-18"><b>Total Revenue</b></a>
+              <div id="exampleAccordion6" class="collapse show" role="tabpanel">
+                <p>{{org[7]}}</p>
+              </div>
             </div>
           </div>
         </div>
-        <div class="w-100"></div>
       </div>
     </div>
   </section>

@@ -24,7 +24,7 @@
             {% endfor %}
             <td>
               <!-- Form to send POST request -->
-              <form action="/show" method="POST" style="display:inline;">
+              <form action="/get_event_details" method="POST" style="display:inline;">
                 <input type="hidden" name="event_id" value="{{row[0]}}">
                 <button type="submit" class="btn btn-primary btn-sm">Show</button>
               </form>

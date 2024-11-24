@@ -12,12 +12,24 @@ app = Flask(__name__)
 app.secret_key = os.urandom(12).hex()
 
 not_skip_id_table = {"ADMIN", "HOST", "PARTICIPANT", "BUDGET_SHEET"}
+
 double_id_table = {"BUDGET_SHEET"}
+
 admin_table_access = {"Host Management": ["HOST", "REQUESTS"], 
                       "Org Management": ["ORGANIZATION", "REQUESTS"], 
                       "Item Management": ["ITEM", "REQUESTS"], 
                       "Venue Management": ["VENUE", "REQUESTS"], 
                       "Ticket Management": ["TICKETS", "REQUESTS"]}
+
+drop_down = {"USER": {"Gender": ['Male', 'Female', 'Other'], "UserType": ['H--', 'HP-', '-P-', '--A']},
+             "PARTICIPANT": {"TShirtSize": ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL']},
+             "REQUESTS": {"Status": ['Pending', 'Approved', 'Rejected']},
+             "EVENT": {"Status": ['Scheduled', 'Cancelled', 'Completed']},
+             "FEEDBACK": {"Rating": ['1', '2', '3', '4', '5']}}
+
+show_queries = {"VENUE": "SELECT VenueName, Location, Capacity FROM VENUE",
+                        "TICKETS": "SELECT TicketID, Cost FROM TICKETS",
+                        "ITEM": "SELECT ItemID, ItemName, ItemCost FROM ITEM"}
 
 def skip_id_check(table_name):
     if table_name in not_skip_id_table:
@@ -49,6 +61,11 @@ user_type_flag = [0, 0, 0]
 @app.route('/')
 def landing():
     return render_template('login.html')
+
+#Index/Landing page
+@app.route('/signup', methods=['POST', 'GET'])
+def signup():
+    return render_template('signup.html', drop_down_col_vals1 = drop_down['USER'], drop_down_col_vals2 = drop_down['PARTICIPANT'])
 
 #Login routing page
 @app.route('/login_route', methods=['POST', 'GET'])
@@ -122,6 +139,73 @@ def login():
         return redirect(url_for('landing'))
     return render_template('index.html', user_id = user_id, user_fullname = user_fullname, user_type_flag = user_type_flag)
 
+# Signup route
+@app.route('/signup_route', methods=['POST', 'GET'])
+def signup_route():
+    try:
+        if request.method == 'POST':
+            # Get form values from the signup form
+            email_username = str(request.form.get('email')).strip()
+            password1 = str(request.form.get('password1')).strip()
+            password2 = str(request.form.get('password2')).strip()
+
+            # Validate passwords
+            if password1 != password2:
+                flash("Passwords do not match. Please check.")
+                return redirect(url_for('landing'))
+
+            # Fetch and format other form inputs
+            user_fname = str(request.form.get('user_fname')).strip()
+            user_lname = str(request.form.get('user_lname')).strip()
+            user_dob = str(request.form.get('user_dob')).strip()
+            formatted_user_dob = datetime.fromisoformat(user_dob).strftime('%Y-%m-%d')
+            user_gender = str(request.form.get('user_gender')).strip()
+            user_majorname = str(request.form.get('user_majorname')).strip()
+            user_startyear = int(request.form.get('user_startyear').strip())
+            user_edutype = str(request.form.get('user_edutype')).strip()
+            user_tshirt = str(request.form.get('user_tshirt')).strip()
+
+            # Call the stored procedure using pyodbc
+            cursor = connection.cursor()
+            query = """
+                EXEC InsertUserAndParticipant 
+                @Email = ?, 
+                @Password = ?, 
+                @FirstName = ?, 
+                @LastName = ?, 
+                @DOB = ?, 
+                @Gender = ?, 
+                @MajorName = ?, 
+                @StartYear = ?, 
+                @EduType = ?, 
+                @TShirtSize = ?
+            """
+            params = (
+                email_username,
+                password1,
+                user_fname,
+                user_lname,
+                formatted_user_dob,
+                user_gender,
+                user_majorname,
+                user_startyear,
+                user_edutype,
+                user_tshirt
+            )
+
+            cursor.execute(query, params)
+            connection.commit()  # Commit the transaction
+            cursor.close()
+
+            flash("Account created successfully!")
+            return redirect(url_for('landing'))
+
+    except Exception as e:
+        print(f"Error occurred during signup: {e}")
+        flash('An error occurred during signup. Please try again.')
+        return redirect(url_for('landing'))
+
+
 @app.route('/logout')
 def logout():
     global user_id, is_valid, user_fullname, user_type_flag, admin_resp, org_id
@@ -156,13 +240,13 @@ def host_check():
 
         print("org_id:", org_id)
 
+        cursor.close()
+
         return redirect(url_for('host'))
     except Exception as e:
         print(e)
         flash('There was an error in showing host dashboard.')
         # flash(e)
-    finally:
-        cursor.close()
 
 @app.route('/host_dashboard')
 def host():
@@ -228,6 +312,48 @@ def org_req():
         print(data)
         cursor.close()
         return render_template('hevents.html', table = data, columns=cols_list, table_name="REQUESTS")
+    except Exception as e:
+        print(e)
+        flash('There was an error in showing host requests dashboard.')
+
+@app.route('/show/<table_name>')
+def show_table(table_name):
+    global user_id, org_id
+    if user_id == None:
+        flash('You have been logged out due to inactivity. Login again to continue.')
+        return redirect(url_for('landing'))
+    
+    try:
+        if org_id == None:
+            # print("B")
+            flash('There was an issue in getting the host organization.')
+            return redirect(url_for('host_check'))
+        table_name = table_name.upper()
+        print(table_name)
+        
+        if table_name not in show_queries:
+            flash('Invalid URL.')
+            return redirect(url_for('host_check'))
+        
+        cursor = connection.cursor()
+
+        host_show_query = show_queries[table_name]
+
+        print(host_show_query)
+
+        cursor.execute(host_show_query)
+
+        columns = cursor.description
+
+        cols_list = []
+
+        for i in range(len(columns)):
+            cols_list.append(columns[i][0])
+
+        data = cursor.fetchall()
+        print(data)
+        cursor.close()
+        return render_template('hshow.html', table = data, columns=cols_list, table_name=table_name)
     except Exception as e:
         print(e)
         flash('There was an error in showing host requests dashboard.')
@@ -300,6 +426,38 @@ def show_reg(eid):
         flash('There was an error in showing event registrations dashboard.')
         # flash(e)
 
+@app.route('/show_event_stats/<eid>')
+def show_event_stats(eid):
+    global user_id, org_id
+    if user_id == None:
+        flash('You have been logged out due to inactivity. Login again to continue.')
+        return redirect(url_for('landing'))
+    print("org_id:", org_id)
+    try:
+        if org_id == None:
+            # print("C")
+            flash('There was an issue in getting the host organization.')
+            return redirect(url_for('host_check'))
+        cursor = connection.cursor()
+
+        host_event_stats_query = "EXEC getEventDetails @EventID = ?"
+        print(host_event_stats_query, eid)
+        
+        cursor.execute(host_event_stats_query, eid)
+        
+        event_stats = cursor.fetchall()
+
+        # Move to the second result set (seat and ticket details)
+        cursor.nextset()
+        seat_ticket = cursor.fetchall()
+        cursor.close()
+
+        return render_template('show_hevent.html', event_stats = event_stats[0], seat_ticket = seat_ticket)
+    except Exception as e:
+        print(e)
+        flash('There was an error in showing event feedback dashboard.')
+        # flash(e)
+
 @app.route('/show_feedback/<eid>')
 def show_feedback(eid):
     global user_id, org_id
@@ -335,6 +493,76 @@ def show_feedback(eid):
         flash('There was an error in showing event feedback dashboard.')
         # flash(e)
 
+@app.route('/show_budget/<eid>')
+def show_budget(eid):
+    global user_id, org_id
+    if user_id == None:
+        flash('You have been logged out due to inactivity. Login again to continue.')
+        return redirect(url_for('landing'))
+    print("org_id:", org_id)
+    try:
+        if org_id == None:
+            # print("C")
+            flash('There was an issue in getting the host organization.')
+            return redirect(url_for('host_check'))
+        cursor = connection.cursor()
+        
+        host_event_budget_query = f'SELECT * FROM [BUDGET] WHERE [EventID]={eid}'
+        cursor.execute(host_event_budget_query)
+
+        print(host_event_budget_query)
+
+        columns = cursor.description
+
+        cols_list = []
+
+        for i in range(len(columns)):
+            cols_list.append(columns[i][0])
+
+        data = cursor.fetchall()
+        print(data)
+        cursor.close()
+        return render_template('hevents2.html', table = data, columns=cols_list, table_name="BUDGET", event_id=eid)
+    except Exception as e:
+        print(e)
+        flash('There was an error in showing event budgets dashboard.')
+        # flash(e)
+
+@app.route('/show_seats/<eid>')
+def show_seats(eid):
+    global user_id, org_id
+    if user_id == None:
+        flash('You have been logged out due to inactivity. Login again to continue.')
+        return redirect(url_for('landing'))
+    print("org_id:", org_id)
+    try:
+        if org_id == None:
+            # print("C")
+            flash('There was an issue in getting the host organization.')
+            return redirect(url_for('host_check'))
+        cursor = connection.cursor()
+        
+        host_event_budget_query = f'SELECT * FROM [SEATS] WHERE [EventID]={eid}'
+        cursor.execute(host_event_budget_query)
+
+        print(host_event_budget_query)
+
+        columns = cursor.description
+
+        cols_list = []
+
+        for i in range(len(columns)):
+            cols_list.append(columns[i][0])
+
+        data = cursor.fetchall()
+        print(data)
+        cursor.close()
+        return render_template('hevents2.html', table = data, columns=cols_list, table_name="SEATS", event_id=eid)
+    except Exception as e:
+        print(e)
+        flash('There was an error in showing event seats dashboard.')
+        # flash(e)
+
 @app.route('/org')
 def org_details():
     global user_id, org_id
@@ -349,8 +577,10 @@ def org_details():
             return redirect(url_for('host_check'))
         cursor = connection.cursor()
         
-        org_query = f'SELECT * FROM [ORGANIZATION] WHERE [OrgID]={org_id}'
-        cursor.execute(org_query)
+        # org_query = f'SELECT * FROM [ORGANIZATION] WHERE [OrgID]={org_id}'
+
+        org_query = "EXEC getOrganizationDetails @OrgID = ?"
+        cursor.execute(org_query, org_id)
 
         print(org_query)
 
@@ -368,6 +598,42 @@ def org_details():
     except Exception as e:
         print(e)
         flash('There was an error in showing event feedback dashboard.')
+
+@app.route('/insert_host2/<table_name>/<eid>', methods = ['POST', 'GET'])
+def insert_host2(table_name, eid):
+    global user_id
+    if user_id == None:
+        flash('You have been logged out due to inactivity. Login again to continue.')
+        return redirect(url_for('landing'))
+    try:
+        if org_id == None:
+            # print("D")
+            flash('There was an issue in getting the host organization.')
+            return redirect(url_for('host_check'))
+        
+        cursor = connection.cursor()
+
+        cols_query = f'SELECT TOP 0 * FROM [{table_name}]'
+
+        cursor.execute(cols_query)
+
+        columns = cursor.description
+
+        cols_list = []
+
+        for i in range(len(columns)):
+            cols_list.append(columns[i][0])
+        
+        print(cols_list)
+
+        current_time = datetime.now().isoformat(timespec='minutes')
+        cursor.close()
+        
+        return render_template('create_host.html', columns = cols_list, org_id=org_id, table_name=table_name, user_id=user_id, current_time=current_time, event_id=eid)
+    except Exception as e:
+        print(e)
+        flash('There was an error in inserting the row. Please check the values carefully.')
+        # flash(e)
 
 @app.route('/insert_host/<table_name>', methods = ['POST', 'GET'])
 def insert_host(table_name):
@@ -388,50 +654,66 @@ def insert_host(table_name):
         cursor.execute(cols_query)
 
         columns = cursor.description
-        cursor.close()
 
         cols_list = []
 
         for i in range(len(columns)):
             cols_list.append(columns[i][0])
         
-        return render_template('create_host.html', columns = cols_list, org_id=org_id, table_name=table_name, user_id=user_id)
+        print(cols_list)
+
+        current_time = datetime.now().isoformat(timespec='minutes')
+        cursor.close()
+        
+        return render_template('create_host.html', columns = cols_list, org_id=org_id, table_name=table_name, user_id=user_id, current_time=current_time)
     except Exception as e:
         print(e)
         flash('There was an error in inserting the row. Please check the values carefully.')
         # flash(e)
 
-@app.route('/create_host/<table_name>', methods = ['POST'])
+@app.route('/create_host/<table_name>', methods=['POST'])
 def create_host(table_name):
     global user_id, org_id
-    if user_id == None:
+    if user_id is None:
         flash('You have been logged out due to inactivity. Login again to continue.')
         return redirect(url_for('landing'))
 
     try:
         if request.method == 'POST':
-            if org_id == None:
-                # print("E")
+            if org_id is None:
                 flash('There was an issue in getting the host organization.')
                 return redirect(url_for('host_check'))
                
             cursor = connection.cursor()
             form_elements = request.form.to_dict()
 
+            print("Form Elements:", form_elements)
+
             cols_list = []
             vals_list = []
-            for i in form_elements:
-                cols_list.append(f'[{i}]')
-                vals_list.append(f"'{form_elements[i]}'")
+
+            for key, value in form_elements.items():
+                cols_list.append(f'[{key}]')
+                if value == 'None' or value.strip() == '':
+                    vals_list.append("NULL")  # Insert NULL for empty values
+                elif "date" in key.lower():  # Handle datetime fields
+                    try:
+                        # Parse and format datetime
+                        formatted_datetime = datetime.fromisoformat(value).strftime('%Y-%m-%d %H:%M:%S')
+                        vals_list.append(f"'{formatted_datetime}'")
+                    except ValueError:
+                        flash(f"Invalid datetime format for {key}.")
+                        return redirect(url_for('host'))
+                else:
+                    vals_list.append(f"'{value}'")
             
             sep = ", "
             
             create_query = f"INSERT INTO [{table_name}] ({sep.join(cols_list)}) VALUES ({sep.join(vals_list)});"
-            print(create_query)
+            print("Generated Query:", create_query)
 
             cursor.execute(create_query)
             connection.commit()
-
             cursor.close()
 
             flash('Row inserted successfully.')
@@ -440,8 +722,8 @@ def create_host(table_name):
         print(e)
         flash('There was an error in creating the row. Please check the values carefully.')
 
-@app.route('/edit_host/<table_name>/<column_name>/<uid>', methods = ['GET'])
-def edit_host(table_name, column_name, uid):
+@app.route('/edit_host/<table_name>/<uid>', methods = ['GET'])
+def edit_host(table_name, uid):
     global user_id, org_id
     if user_id == None:
         flash('You have been logged out due to inactivity. Login again to continue.')
@@ -466,15 +748,26 @@ def edit_host(table_name, column_name, uid):
         for i in range(len(columns)):
             cols_list.append(columns[i][0])
 
-        update_query = f'SELECT * FROM [{table_name}] WHERE [{column_name}]={uid}'
+        # update_query = f'SELECT * FROM [{table_name}] WHERE [{column_name}]={uid}'
+
+        uid_split = uid.split("_")
+
+        if double_id_check(table_name):
+            update_query = f'SELECT * FROM [{table_name}] WHERE {uid_split[0]}={uid_split[1]} AND {uid_split[2]}={uid_split[3]}'
+        else:
+            update_query = f'SELECT * FROM [{table_name}] WHERE {uid_split[0]}={uid_split[1]}'
             
         cursor.execute(update_query)
+
+        print(update_query)
 
         data = cursor.fetchall()
 
         cursor.close()
 
-        return render_template('edit_host.html', columns = cols_list, table_name=table_name, data=data[0])
+        current_time = datetime.now().isoformat(timespec='minutes')
+
+        return render_template('edit_host.html', columns = cols_list, table_name=table_name, data=data[0], skip_id=double_id_check(table_name), current_time=current_time)
     except Exception as e:
         print(e)
         flash('There was an error in editing the row. Please check the values carefully.')
@@ -505,11 +798,25 @@ def update_host(table_name, uid):
                 if value == 'None' or value.strip() == '':
                     update_key_vals.append(f"[{key}] = NULL")
                 else:
-                    update_key_vals.append(f"[{key}] = '{value}'")
+                    if "date" in key.lower():  # Handle datetime fields
+                        try:
+                            # Parse and format datetime
+                            formatted_datetime = datetime.fromisoformat(value).strftime('%Y-%m-%d %H:%M:%S')
+                            update_key_vals.append(f"[{key}] = '{formatted_datetime}'")
+                        except ValueError:
+                            flash(f"Invalid datetime format for {key}.")
+                            return redirect(url_for('host'))
+                    else:
+                        update_key_vals.append(f"[{key}] = '{value}'")
                 
             sep = ", "
 
-            update_query = f'UPDATE [{table_name}] SET {sep.join(update_key_vals)} WHERE {uid_split[0]} = {uid_split[1]};'
+            # update_query = f'UPDATE [{table_name}] SET {sep.join(update_key_vals)} WHERE {uid_split[0]} = {uid_split[1]};'
+
+            if double_id_check(table_name):
+                update_query = f'UPDATE [{table_name}] SET {sep.join(update_key_vals)} WHERE {uid_split[0]} = {uid_split[1]} AND {uid_split[2]} = {uid_split[3]};'
+            else:
+                update_query = f'UPDATE [{table_name}] SET {sep.join(update_key_vals)} WHERE {uid_split[0]} = {uid_split[1]};'
             
             print(update_query)
 
@@ -524,8 +831,8 @@ def update_host(table_name, uid):
         print(e)
         flash('There was an error in updating the row. Please check the values carefully.')
 
-@app.route('/delete_host/<table_name>/<column_name>/<uid>', methods = ['GET'])
-def delete_host(table_name, column_name, uid):
+@app.route('/delete_host/<table_name>/<uid>', methods = ['GET'])
+def delete_host(table_name, uid):
     global user_id
     if user_id == None:
         flash('You have been logged out due to inactivity. Login again to continue.')
@@ -539,7 +846,13 @@ def delete_host(table_name, column_name, uid):
         
         cursor = connection.cursor()
 
-        delete_query = f'DELETE FROM [{table_name}] WHERE {column_name} = {uid};'
+        # delete_query = f'DELETE FROM [{table_name}] WHERE {column_name} = {uid};'
+        uid_split = uid.split("_")
+
+        if double_id_check(table_name):
+            delete_query = f'DELETE FROM [{table_name}] WHERE {uid_split[0]} = {uid_split[1]} AND {uid_split[2]} = {uid_split[3]};'
+        else:
+            delete_query = f'DELETE FROM [{table_name}] WHERE {uid_split[0]} = {uid_split[1]};'
         
         print(delete_query)
 
@@ -575,13 +888,13 @@ def admin_check():
 
         print(admin_resp)
 
+        cursor.close()
+
         return redirect(url_for('admin'))
     except Exception as e:
         print(e)
         flash('There was an error in showing admin dashboard.')
         # flash(e)
-    finally:
-        cursor.close()
 
 @app.route('/admin_dashboard')
 def admin():
@@ -682,13 +995,22 @@ def insert(table_name):
         cursor.execute(cols_query)
 
         columns = cursor.description
-        cursor.close()
 
         cols_list = []
 
         for i in range(len(columns)):
             cols_list.append(columns[i][0])
-        return render_template('create.html', columns = cols_list, table_name=table_name, skip_id=skip_id_check(table_name), tables=[admin_table_access[admin_resp]])
+        
+        drop_down_col_vals = {"0": "None"}
+        if table_name in drop_down:
+            drop_down_col_vals = drop_down[table_name]
+        
+        current_time = datetime.now().isoformat(timespec='minutes')
+        cursor.close()
+        
+        print(cols_list)
+        print(drop_down_col_vals)
+        return render_template('create.html', columns = cols_list, table_name=table_name, skip_id=skip_id_check(table_name), tables=[admin_table_access[admin_resp]], drop_down_col_vals=drop_down_col_vals, current_time=current_time)
     except Exception as e:
         print(e)
         flash('There was an error in inserting the row. Please check the values carefully.')
@@ -712,9 +1034,24 @@ def create(table_name):
 
             cols_list = []
             vals_list = []
-            for i in form_elements:
-                cols_list.append(f'[{i}]')
-                vals_list.append(f"'{form_elements[i]}'")
+            # for i in form_elements:
+            #     cols_list.append(f'[{i}]')
+            #     vals_list.append(f"'{form_elements[i]}'")
+
+            for key, value in form_elements.items():
+                cols_list.append(f'[{key}]')
+                if value == 'None' or value.strip() == '':
+                    vals_list.append("NULL")  # Insert NULL for empty values
+                elif "date" in key.lower():  # Handle datetime fields
+                    try:
+                        # Parse and format datetime
+                        formatted_datetime = datetime.fromisoformat(value).strftime('%Y-%m-%d %H:%M:%S')
+                        vals_list.append(f"'{formatted_datetime}'")
+                    except ValueError:
+                        flash(f"Invalid datetime format for {key}.")
+                        return redirect(url_for('host'))
+                else:
+                    vals_list.append(f"'{value}'")
             
             sep = ", "
             
@@ -770,9 +1107,11 @@ def edit(table_name, uid):
 
         data = cursor.fetchall()
 
+        current_time = datetime.now().isoformat(timespec='minutes')
+
         cursor.close()
 
-        return render_template('edit.html', columns = cols_list, table_name=table_name, data=data[0], skip_id=double_id_check(table_name), tables=[admin_table_access[admin_resp]])
+        return render_template('edit.html', columns = cols_list, table_name=table_name, data=data[0], skip_id=double_id_check(table_name), tables=[admin_table_access[admin_resp]], current_time=current_time)
     except Exception as e:
         print(e)
         flash('There was an error in deleting the row. Please check the values carefully.')
@@ -802,7 +1141,16 @@ def update(table_name, uid):
                 if value == 'None' or value.strip() == '':
                     update_key_vals.append(f"[{key}] = NULL")
                 else:
-                    update_key_vals.append(f"[{key}] = '{value}'")
+                    if "date" in key.lower():  # Handle datetime fields
+                        try:
+                            # Parse and format datetime
+                            formatted_datetime = datetime.fromisoformat(value).strftime('%Y-%m-%d %H:%M:%S')
+                            update_key_vals.append(f"[{key}] = '{formatted_datetime}'")
+                        except ValueError:
+                            flash(f"Invalid datetime format for {key}.")
+                            return redirect(url_for('host'))
+                    else:
+                        update_key_vals.append(f"[{key}] = '{value}'")
                 
             sep = ", "
 
@@ -881,14 +1229,14 @@ def get_unregistered_events():
         columns = [column[0] for column in cursor.description]
         events = cursor.fetchall()
 
+        cursor.close()
+
         return render_template('pevents.html', events = events, columns = columns)
     except Exception as e:
         print(e)
         flash('There was an error in fetching all the events.')
-    finally:
-        cursor.close()
 
-@app.route('/show', methods=['GET', 'POST'])
+@app.route('/get_event_details', methods=['GET', 'POST'])
 def get_event_details():
     """
     Call the getEventVenueAndTicketDetails stored procedure to fetch event, venue, and ticket details.
@@ -911,12 +1259,12 @@ def get_event_details():
         cursor.nextset()
         seat_ticket = cursor.fetchall()
 
+        cursor.close()
+
         return render_template('show_pevent.html', event_venue = event_venue[0], seat_ticket = seat_ticket, event_id = event_id)
     except Exception as e:
         print(e)
         flash('There was an error in fetching event details.')
-    finally:
-        cursor.close()
 
 @app.route('/book_ticket', methods=['POST'])
 def book_ticket():
@@ -935,7 +1283,6 @@ def book_ticket():
         # Retrieve ticket data
         seat_id = None
         quant = None
-        transaction_time = datetime.now()
 
         for ticket_id, quantity in request.form.items():
             if ticket_id.startswith("ticket_") and int(quantity) > 0:
@@ -943,7 +1290,6 @@ def book_ticket():
                 quant = quantity
         
         cursor = connection.cursor()
-        form_elements = request.form.to_dict()
 
         cols_list = ["PUserID", "EventID", "SeatID", "TicketQuantity", "TransactionTime"]
         vals_list = [str(user_id), str(event_id), str(seat_id), str(quant), "GETDATE()"]
@@ -980,18 +1326,71 @@ def get_tickets():
         event_reg_tickets = cursor.fetchall()
 
         columns = cursor.description
+        cursor.close()
 
         cols_list = []
 
         for i in range(len(columns)):
+            if i == 0:
+                continue
             cols_list.append(columns[i][0])
 
         return render_template('registered_pevents.html', events = event_reg_tickets, columns = cols_list)
     except Exception as e:
         print(e)
         flash('There was an error in fetching user registrations.')
-    finally:
+
+@app.route('/feedback', methods=['POST'])
+def feedback():
+    global user_id
+    if user_id == None:
+        flash('You have been logged out due to inactivity. Login again to continue.')
+        return redirect(url_for('landing'))
+    try :
+        # Retrieve event_id from the form
+        event_id = request.form.get("event_id")
+        cols_list = ["Message", "Rating"]
+        return render_template("create_feedback.html", user_id=user_id, event_id=event_id, columns=cols_list, drop_down_col_vals=drop_down['FEEDBACK'])
+    except Exception as e:
+        print(e)
+        flash('Unable to open feedback')
+
+@app.route('/insert_feedback', methods=['POST'])
+def insert_feedback():
+    global user_id
+    if user_id == None:
+        flash('You have been logged out due to inactivity. Login again to continue.')
+        return redirect(url_for('landing'))
+    try :
+        form_elements = request.form.to_dict()
+
+        cols_list = []
+        vals_list = []
+
+        for key, value in form_elements.items():
+            cols_list.append(f'[{key}]')
+            if value == 'None' or value.strip() == '':
+                vals_list.append(f"NULL")
+            else:
+                vals_list.append(f"'{value}'")
+        
+        sep = ", "
+
+        cursor = connection.cursor()
+        
+        feedback_create_query = f"INSERT INTO [FEEDBACK] ({sep.join(cols_list)}) VALUES ({sep.join(vals_list)});"
+        print(feedback_create_query)
+
+        cursor.execute(feedback_create_query)
+        connection.commit()
+
         cursor.close()
+
+        flash('Feedback Given Successfully.')
+        return render_template("booking_success.html")
+    except Exception as e:
+        print(e)
+        flash('Could not post the feedback. Please try again later.')
 
 if __name__ == '__main__':
     app.run(port=8000, debug=True)

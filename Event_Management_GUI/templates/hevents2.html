@@ -4,7 +4,7 @@
   <div class="row" style="margin-left: 20px; margin-top: 20px;">
       <h3>{{table_name}}</h3>
     <div class="col-md-9">
-      <a href="/insert_host/{{table_name}}" class="btn btn-primary btn-sm">Insert</a>
+      <a href="/insert_host2/{{table_name}}/{{event_id}}" class="btn btn-primary btn-sm">Insert</a>
     </div>
   </div>
 
@@ -26,15 +26,6 @@
             <td>{{cell}}</td>
             {% endfor %}
             <td>
-              {% if table_name=="EVENT" %}
-              <a href="/show_reg/{{row[0]}}" class="btn btn-primary btn-sm">Registrations</a>
-              <a href="/show_event_stats/{{row[0]}}" class="btn btn-primary btn-sm">Stats</a>
-                {% if row[3]=="Completed" %}
-                <a href="/show_feedback/{{row[0]}}" class="btn btn-primary btn-sm">Feedback</a>
-                {% endif %}
-              <a href="/show_budget/{{row[0]}}" class="btn btn-secondary btn-sm">Budget</a>
-              <a href="/show_seats/{{row[0]}}" class="btn btn-secondary btn-sm">Seats</a>
-              {% endif %}
               {% if table_name=="BUDGET_SHEET" %}
                 <a href="/edit_host/{{table_name}}/{{columns[0]}}_{{row[0]}}_{{columns[1]}}_{{row[1]}}" class="btn btn-secondary btn-sm">Edit</a>
                 <a href="/delete_host/{{table_name}}/{{columns[0]}}_{{row[0]}}_{{columns[1]}}_{{row[1]}}" class="btn btn-danger btn-delete btn-sm">Delete</a>

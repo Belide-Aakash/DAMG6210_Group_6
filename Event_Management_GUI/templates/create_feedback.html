@@ -1,0 +1,33 @@
+{% extends "participant_layout.html" %}
+{% block body %}
+
+<div class="row">
+    <div class="col-md-4 offset-md-4" style="margin: 50px">
+        <div class="card card-body">
+            <form action="/insert_feedback" method="POST">
+                <input type="hidden" name="EventID" value="{{event_id}}">
+                <input type="hidden" name="PUserID" value="{{user_id}}">
+                    {% for i in range(columns|length) %}
+                    <div class="form-group">
+                        <label>{{columns[i]}}</label>
+                        {% if columns[i] in drop_down_col_vals %}
+                        <input type="text" id="table" name="{{columns[i]}}" class="form-control" list="{{columns[i]}}search" required>
+                        <datalist id="{{columns[i]}}search">
+                            {% for table in drop_down_col_vals[columns[i]] %}
+                            <option>{{table}}</option>
+                            {% endfor %}
+                        </datalist>
+                        {% else %}
+                        <input type="text" name="{{columns[i]}}" value="" class="form-control">
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                <button type="submit" class="btn btn-primary btn-block">
+                    Give Feedback
+                </button>
+        </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

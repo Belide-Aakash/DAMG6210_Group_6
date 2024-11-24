@@ -9,14 +9,41 @@
                     {% for i in range(1, columns|length) %}
                     <div class="form-group">
                         <label>{{columns[i]}}</label>
+                        {% if columns[i] in drop_down_col_vals %}
+                        <input type="text" id="table" name="{{columns[i]}}" class="form-control" list="{{columns[i]}}search">
+                        <datalist id="{{columns[i]}}search">
+                            {% for table in drop_down_col_vals[columns[i]] %}
+                            <option>{{table}}</option>
+                            {% endfor %}
+                        </datalist>
+                        {% elif ("dob" in columns[i]|lower)%}
+                        <input type="date" name="{{columns[i]}}" value="" class="form-control" max="{{current_time}}">
+                        {% elif ("date" in columns[i]|lower)%}
+                        <input type="datetime-local" name="{{columns[i]}}" value="" class="form-control" min="{{current_time}}">
+                        {% else %}
                         <input type="text" name="{{columns[i]}}" value="" class="form-control">
+                        {% endif %}
                     </div>
                     {% endfor %}
                 {% else %}
                     {% for i in range(columns|length) %}
                     <div class="form-group">
                         <label>{{columns[i]}}</label>
+                        {% if columns[i] in drop_down_col_vals %}
+                        <input type="text" id="table" name="{{columns[i]}}" class="form-control" list="{{columns[i]}}search">
+                        <datalist id="{{columns[i]}}search">
+                            {% for table in drop_down_col_vals[columns[i]] %}
+                            <option>{{table}}</option>
+                            {% endfor %}
+                        </datalist>
+                    </datalist>
+                    {% elif ("dob" in columns[i]|lower)%}
+                    <input type="date" name="{{columns[i]}}" value="" class="form-control" max="{{current_time}}">
+                    {% elif "date" in columns[i]|lower %}
+                    <input type="datetime-local" name="{{columns[i]}}" value="" class="form-control" min="{{current_time}}">
+                        {% else %}
                         <input type="text" name="{{columns[i]}}" value="" class="form-control">
+                        {% endif %}
                     </div>
                     {% endfor %}
                 {% endif %}

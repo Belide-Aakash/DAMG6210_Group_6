@@ -1,0 +1,109 @@
+{% extends "host_layout.html" %}
+{% block body %}
+<div>
+  <section class="pb_section" data-section="why-us" id="section-why-us">
+    <div class="container">
+      <div class="row justify-content-md-center text-center mb-5">
+        <div class="col-lg-7">
+          <h2 class="mt-0 heading-border-top font-weight-normal">{{event_stats[0]}}</h2>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-7">
+          <div class="images right">
+            {% if event_stats[0]== "NA" %}
+            <img class="img1 img-fluid" src="{{event_stats[1]}}" alt="{{event_stats[1]}}">
+            {% else %}
+            <img class="img1 img-fluid" src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="{{event_stats[1]}}">
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-lg-5 pl-md-5 pl-sm-0">
+          <div id="exampleAccordion" class="pb_accordion" data-children=".item">
+            <div class="item"></div>
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion1" aria-expanded="true"
+                aria-controls="exampleAccordion1" class="pb_font-18"><b>Event Name</b></a>
+              <div id="exampleAccordion1" class="collapse show" role="tabpanel">
+                <p>{{event_stats[0]}}</p>
+              </div>
+            </div>
+
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion2" aria-expanded="true"
+                aria-controls="exampleAccordion2" class="pb_font-18"><b>Description</b></a>
+              <div id="exampleAccordion2" class="collapse show" role="tabpanel">
+                <p>{{event_stats[1]}}</p>
+              </div>
+            </div>
+
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion3" aria-expanded="false"
+                aria-controls="exampleAccordion3" class="pb_font-18"><b>Location Details</b></a>
+              <div id="exampleAccordion3" class="collapse show" role="tabpanel">
+                <p>{{event_stats[2]}}</p>
+              </div>
+            </div>
+
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion4" aria-expanded="false"
+                aria-controls="exampleAccordion4" class="pb_font-18"><b>Event Date</b></a>
+              <div id="exampleAccordion4" class="collapse show" role="tabpanel">
+                <p>{{event_stats[3]}}</p>
+              </div>
+            </div>
+
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion5" aria-expanded="false"
+                aria-controls="exampleAccordion5" class="pb_font-18"><b>Number of Bookings</b></a>
+              <div id="exampleAccordion5" class="collapse show" role="tabpanel">
+                <p>{{event_stats[4]}}</p>
+              </div>
+            </div>
+
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion6" aria-expanded="false"
+                aria-controls="exampleAccordion6" class="pb_font-18"><b>Number of Registrations</b></a>
+              <div id="exampleAccordion6" class="collapse show" role="tabpanel">
+                <p>{{event_stats[5]}}</p>
+              </div>
+            </div>
+
+            <div class="item">
+              <a data-toggle="collapse" data-parent="#exampleAccordion" href="#exampleAccordion7" aria-expanded="false"
+                aria-controls="exampleAccordion7" class="pb_font-18"><b>Total Revenue</b></a>
+              <div id="exampleAccordion7" class="collapse show" role="tabpanel">
+                <p>{{event_stats[6]}}</p>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pb_section bg-light">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg">
+          <div class="media pb_media_v1 mb-5">
+            <div class="media-body">
+              <h3 class="mt-0 pb_font-17">Tickets</h3>
+              {% for ticket in seat_ticket %}
+                <div class="ticket-item">
+                  <p class="pb_font-14"><b>{{ticket[0]}}</b></p>
+                  <p class="pb_font-14">
+                    $ {{ticket[1]}} | Total Seats: {{ticket[2]}}, Tickets Left: {{ticket[3]}}
+                  </p>
+                </div>
+                <p></p>
+                {% endfor %}
+            </div>
+          </div>
+        </div>
+        <div class="w-100"></div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

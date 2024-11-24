@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="../static/css/ht_logo.png" type="../static/css/ht_logo.png">
+  <link rel="icon" href="../static/css/em_logo.png" type="../static/css/em_logo.png">
   <link href="../static/css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
   <title>Event Management</title>
   <style>
@@ -45,9 +45,13 @@
         <h4 class="animation a2">One place to all events. <span>Check the e-mail ID and password before submitting.</span></h4>
       </div>
       <form action="/login_route" class="form" method="POST">
-        <input type="email" class="form-field animation a3" name="email_username" placeholder="E-mail">
-        <input type="password" class="form-field animation a4" name="password" placeholder="Password">
-        <button class="form-submit-button animation a6" type="submit">SUBMIT</button>
+        <input type="email" class="form-field animation a3" name="email_username" placeholder="E-mail" required>
+        <input type="password" class="form-field animation a4" name="password" placeholder="Password" required>
+        <button class="form-submit-button animation a6" type="submit">LOGIN</button>
+      </form>
+
+      <form action="/signup" class="form" method="POST">
+        <button class="form-submit-button2 animation a6" type="submit">SIGN-UP</button>
       </form>
 
       {% with messages = get_flashed_messages() %}
